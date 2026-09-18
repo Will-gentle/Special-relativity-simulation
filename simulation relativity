@@ -1,0 +1,679 @@
+<meta charset="utf-8">
+<title>The Tilting Now</title>
+<style>
+  :root {
+    --bg:        #E9EDF1;
+    --surface:   #FFFFFF;
+    --surface-2: #F3F6F9;
+    --ink:       #101821;
+    --ink-2:     #3D4C5A;
+    --muted:     #6B7B8B;
+    --line:      #CBD5DE;
+    --line-soft: #E1E8EE;
+    --grid:      rgba(16, 24, 33, 0.05);
+    --grid-axis: rgba(16, 24, 33, 0.40);
+
+    --earth:  #2F7DBF;
+    --planet: #7E52B3;
+    --sister: #C96A18;
+    --ray:    #A88A16;
+    --now:    #C93B6E;
+    --focus:  #2F7DBF;
+
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --radius: 3px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D1218; --surface: #151D25; --surface-2: #1B242E;
+      --ink: #DFE7EE; --ink-2: #B3C0CC; --muted: #8493A2;
+      --line: #2A3642; --line-soft: #212C36;
+      --grid: rgba(223, 231, 238, 0.06); --grid-axis: rgba(223, 231, 238, 0.40);
+      --earth: #59A6E4; --planet: #A87BDC; --sister: #EE9440;
+      --ray: #D4B43A; --now: #EC6291; --focus: #59A6E4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1218; --surface: #151D25; --surface-2: #1B242E;
+    --ink: #DFE7EE; --ink-2: #B3C0CC; --muted: #8493A2;
+    --line: #2A3642; --line-soft: #212C36;
+    --grid: rgba(223, 231, 238, 0.06); --grid-axis: rgba(223, 231, 238, 0.40);
+    --earth: #59A6E4; --planet: #A87BDC; --sister: #EE9440;
+    --ray: #D4B43A; --now: #EC6291; --focus: #59A6E4;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 15px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1120px; margin: 0 auto; padding: 30px 20px 60px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  header { display: flex; flex-direction: column; gap: 8px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  h1 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: clamp(27px, 4.4vw, 37px); line-height: 1.12;
+    letter-spacing: -0.015em; margin: 0;
+  }
+
+  .tabs {
+    display: flex; border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; width: fit-content; max-width: 100%; background: var(--surface);
+  }
+  .tab {
+    appearance: none; border: 0; border-right: 1px solid var(--line);
+    background: transparent; color: var(--ink-2); font-family: inherit;
+    font-size: 13.5px; font-weight: 500; padding: 9px 16px; cursor: pointer; white-space: nowrap;
+  }
+  .tab:last-child { border-right: 0; }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--surface); }
+  .tab:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+  .layout {
+    display: grid; grid-template-columns: minmax(272px, 320px) 1fr;
+    gap: 26px; align-items: start;
+  }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .rail { display: flex; flex-direction: column; gap: 15px; min-width: 0; }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 15px;
+    display: flex; flex-direction: column; gap: 13px;
+  }
+  .panel h2 {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--muted); font-weight: 500; margin: 0;
+  }
+
+  .control { display: flex; flex-direction: column; gap: 6px; }
+  .control-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .control-head label { font-size: 13.5px; color: var(--ink-2); }
+  .control-head .val {
+    font-family: var(--mono); font-size: 13px;
+    font-variant-numeric: tabular-nums; color: var(--ink);
+  }
+
+  input[type="range"] {
+    appearance: none; -webkit-appearance: none; width: 100%; height: 20px;
+    background: transparent; cursor: pointer; margin: 0;
+  }
+  input[type="range"]::-webkit-slider-runnable-track { height: 3px; background: var(--line); border-radius: 2px; }
+  input[type="range"]::-moz-range-track { height: 3px; background: var(--line); border-radius: 2px; }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%;
+    background: var(--ink); border: 0; margin-top: -6px;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 15px; height: 15px; border-radius: 50%; background: var(--ink); border: 0;
+  }
+  input[type="range"]:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+  .scrub-marks {
+    display: flex; justify-content: space-between; font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.04em; color: var(--muted); text-transform: uppercase;
+  }
+
+  .toggles { display: flex; flex-direction: column; gap: 8px; }
+  .toggle-row { display: flex; align-items: center; gap: 9px; }
+  .toggle-row input { width: 15px; height: 15px; flex: none; }
+  .toggle-row label { font-size: 13.5px; color: var(--ink-2); cursor: pointer; }
+
+  .hint { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+
+  .btn {
+    appearance: none; border: 1px solid var(--line); background: var(--surface-2);
+    color: var(--ink-2); font-family: inherit; font-size: 12.5px;
+    padding: 6px 11px; border-radius: var(--radius); cursor: pointer; align-self: flex-start;
+  }
+  .btn:hover { color: var(--ink); }
+  .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  table.events { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12.5px; }
+  table.events th {
+    text-align: right; font-weight: 500; color: var(--muted);
+    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 0 0 5px; border-bottom: 1px solid var(--line-soft);
+  }
+  table.events th:first-child { text-align: left; }
+  table.events td {
+    text-align: right; padding: 5px 0; font-variant-numeric: tabular-nums;
+    color: var(--ink); border-bottom: 1px solid var(--line-soft);
+  }
+  table.events td:first-child { text-align: left; font-weight: 600; }
+  table.events tr:last-child td { border-bottom: 0; }
+
+  .order { display: flex; flex-direction: column; gap: 4px; }
+  .order div { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; }
+  .order .lbl { color: var(--muted); }
+  .order .seq { font-family: var(--mono); font-weight: 600; letter-spacing: 0.08em; }
+
+  .tiles {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--line-soft); border: 1px solid var(--line-soft);
+  }
+  .tile { background: var(--surface); padding: 10px 11px 11px; display: flex; flex-direction: column; gap: 2px; }
+  .tile .k {
+    font-size: 10.5px; letter-spacing: 0.05em; color: var(--muted);
+    text-transform: uppercase; font-family: var(--mono);
+    display: flex; align-items: center; gap: 6px; line-height: 1.4;
+  }
+  .tile .v {
+    font-family: var(--mono); font-size: 18px; font-variant-numeric: tabular-nums;
+    color: var(--ink); line-height: 1.3;
+  }
+  .tile .v small { font-size: 11px; color: var(--muted); margin-left: 2px; }
+  .swatch { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+  .plotwrap { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+  .canvas-shell {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 6px; overflow-x: auto;
+    display: flex; justify-content: center;
+  }
+  canvas { display: block; }
+  #plot { cursor: crosshair; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 5px 15px; font-size: 12.5px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 15px; height: 0; border-top-width: 2px; border-top-style: solid; flex: none; }
+  .legend i.dash { border-top-style: dashed; }
+
+  .hidden { display: none !important; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Special relativity &middot; spacetime diagrams</div>
+    <h1>The Tilting Now</h1>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Diagram mode">
+    <button class="tab" role="tab" id="tab-sim" aria-selected="true" aria-controls="panel-main">1 &middot; Relativity of simultaneity</button>
+    <button class="tab" role="tab" id="tab-twin" aria-selected="false" aria-controls="panel-main">2 &middot; The twin paradox</button>
+  </div>
+
+  <div class="layout" id="panel-main" role="tabpanel">
+    <div class="rail">
+      <div class="panel">
+        <h2>Controls</h2>
+        <div class="control">
+          <div class="control-head">
+            <label for="beta">Sister&rsquo;s speed</label>
+            <span class="val" id="beta-val">0.866 c</span>
+          </div>
+          <input type="range" id="beta" min="0" max="1" step="0.001" value="0.866">
+        </div>
+        <div class="control" id="scrub-control">
+          <div class="control-head">
+            <label for="journey">Position in the journey</label>
+            <span class="val" id="journey-val">Launch</span>
+          </div>
+          <input type="range" id="journey" min="0" max="1" step="0.0005" value="0">
+          <div class="scrub-marks"><span>Launch</span><span>Turnaround</span><span>Landing</span></div>
+        </div>
+        <div class="toggles" id="toggles"></div>
+        <div class="hint" id="hint"></div>
+        <button class="btn hidden" id="clear-events">Reset events</button>
+      </div>
+
+      <div class="panel" id="events-panel">
+        <h2>Events</h2>
+        <table class="events" id="events-table"></table>
+        <div class="order" id="order"></div>
+      </div>
+
+      <div class="panel">
+        <h2 id="readout-title">Readings</h2>
+        <div class="tiles" id="tiles"></div>
+      </div>
+    </div>
+
+    <div class="plotwrap">
+      <div class="canvas-shell"><canvas id="plot" role="img" aria-label="Spacetime diagram"></canvas></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var T_LEG = 10;          // mode 2: Earth-frame years per leg
+  var L_FIXED = 8.66;      // mode 1: fixed planet separation, light-years
+  var PAD = { l: 44, r: 20, t: 20, b: 34 };
+  var MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+  var LETTERS = "ABCDEFGH";
+
+  var WINDOWS = {
+    sim:  { X0: -10, X1: 10, C0: -10, C1: 10 },
+    twin: { X0: -7, X1: 13.5, C0: -1.5, C1: 21.5 }
+  };
+
+  var TOGGLES = {
+    sim: [
+      { key: "axes", label: "Sister\u2019s axes", def: true },
+      { key: "nowLines", label: "Her \u201cnow\u201d through each event", def: true }
+    ],
+    twin: [
+      { key: "nowLine", label: "Sister\u2019s line of \u201cnow\u201d", def: true }
+    ]
+  };
+
+  var DEFAULT_EVENTS = [{ x: 0, ct: 0 }, { x: L_FIXED, ct: 0 }];
+
+  var state = {
+    mode: "sim", beta: 0.866, p: 0, opt: {},
+    events: DEFAULT_EVENTS.map(function (e) { return { x: e.x, ct: e.ct }; })
+  };
+
+  var canvas = document.getElementById("plot");
+  var ctx = canvas.getContext("2d");
+  var W = WINDOWS.sim;
+  var scale = 1, plotW = 1, plotH = 1;
+
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function fmt(v, dp) {
+    if (typeof v !== "number" || v !== v) return "\u2014";
+    return isFinite(v) ? v.toFixed(dp === undefined ? 2 : dp) : "\u221e";
+  }
+
+  // ---- physics -----------------------------------------------------------
+
+  function derived() {
+    var b = state.beta;
+    var g = (b >= 1) ? Infinity : 1 / Math.sqrt(1 - b * b);
+    var L = (state.mode === "sim") ? L_FIXED : b * T_LEG;
+    return { b: b, g: g, L: L, offset: b * L, legProper: T_LEG / g };
+  }
+
+  // Lorentz transform of an event into the sister's frame (c = 1)
+  function toPrime(e, d) {
+    if (!isFinite(d.g)) return { t: NaN, x: NaN };   // no valid frame at v = c
+    return { t: d.g * (e.ct - d.b * e.x), x: d.g * (e.x - d.b * e.ct) };
+  }
+
+  function journey(p) {
+    var d = derived(), L = d.L, b = d.b, T = T_LEG, s;
+    if (p < 0.06) {
+      s = { x: 0, ct: 0, bc: b * (p / 0.06), tau: 0, phase: "Launch burn", key: "accel" };
+    } else if (p < 0.45) {
+      var t = ((p - 0.06) / 0.39) * T;
+      s = { x: b * t, ct: t, bc: b, tau: t / d.g, phase: "Outbound", key: "out" };
+    } else if (p < 0.55) {
+      var u = (p - 0.45) / 0.10;
+      s = { x: L, ct: T, bc: b * (1 - 2 * u), tau: T / d.g, phase: "Turnaround", key: "turn" };
+    } else if (p < 0.94) {
+      var t2 = T + ((p - 0.55) / 0.39) * T;
+      s = { x: L - b * (t2 - T), ct: t2, bc: -b, tau: (t2) / d.g, phase: "Homeward", key: "back" };
+    } else {
+      s = { x: 0, ct: 2 * T, bc: -b * (1 - (p - 0.94) / 0.06), tau: 2 * T / d.g,
+            phase: "Landing burn", key: "decel" };
+    }
+    s.earthNow = s.ct - s.bc * s.x;
+    s.farNow = s.ct + s.bc * (L - s.x);
+    return s;
+  }
+
+  // ---- canvas ------------------------------------------------------------
+
+  function px(x) { return PAD.l + (x - W.X0) * scale; }
+  function py(c) { return PAD.t + (W.C1 - c) * scale; }
+  function toWorldX(p) { return W.X0 + (p - PAD.l) / scale; }
+  function toWorldC(p) { return W.C1 - (p - PAD.t) / scale; }
+
+  function resize() {
+    var shell = canvas.parentNode;
+    var availW = Math.max(220, shell.clientWidth - 14);
+    var xr = W.X1 - W.X0, cr = W.C1 - W.C0;
+    var byWidth = (availW - PAD.l - PAD.r) / xr;
+    var capH = Math.min(window.innerHeight * 0.74, 620);
+    scale = Math.max(12, Math.min(byWidth, capH / cr));
+    plotW = scale * xr; plotH = scale * cr;
+    var cssW = plotW + PAD.l + PAD.r, cssH = plotH + PAD.t + PAD.b;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.style.width = cssW + "px"; canvas.style.height = cssH + "px";
+    canvas.width = Math.round(cssW * dpr); canvas.height = Math.round(cssH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+
+  function clipPlot() {
+    ctx.save(); ctx.beginPath(); ctx.rect(PAD.l, PAD.t, plotW, plotH); ctx.clip();
+  }
+
+  function stroke(x1, c1, x2, c2, colour, width, dash, alpha) {
+    ctx.save();
+    if (alpha !== undefined) ctx.globalAlpha = alpha;
+    ctx.strokeStyle = colour; ctx.lineWidth = width || 1; ctx.setLineDash(dash || []);
+    ctx.beginPath(); ctx.moveTo(px(x1), py(c1)); ctx.lineTo(px(x2), py(c2)); ctx.stroke();
+    ctx.restore();
+  }
+  function ray(x0, c0, slope, colour, width, dash, alpha) {
+    stroke(W.X0, c0 + slope * (W.X0 - x0), W.X1, c0 + slope * (W.X1 - x0), colour, width, dash, alpha);
+  }
+  function rayV(x0, c0, inv, colour, width, dash, alpha) {
+    stroke(x0 + inv * (W.C0 - c0), W.C0, x0 + inv * (W.C1 - c0), W.C1, colour, width, dash, alpha);
+  }
+  function dot(x, c, colour, r) {
+    ctx.save(); ctx.fillStyle = colour;
+    ctx.beginPath(); ctx.arc(px(x), py(c), r || 4, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  }
+  function text(str, x, c, colour, align, dx, dy, size, weight) {
+    ctx.save(); ctx.fillStyle = colour;
+    ctx.font = (weight || 500) + " " + (size || 11.5) + "px " + MONO;
+    ctx.textAlign = align || "left"; ctx.textBaseline = "middle";
+    ctx.fillText(str, px(x) + (dx || 0), py(c) + (dy || 0)); ctx.restore();
+  }
+
+  function baseGrid() {
+    clipPlot();
+    ctx.save(); ctx.strokeStyle = css("--grid"); ctx.lineWidth = 1;
+    for (var x = Math.ceil(W.X0); x <= W.X1; x++) {
+      ctx.beginPath(); ctx.moveTo(px(x), py(W.C1)); ctx.lineTo(px(x), py(W.C0)); ctx.stroke();
+    }
+    for (var c = Math.ceil(W.C0); c <= W.C1; c++) {
+      ctx.beginPath(); ctx.moveTo(px(W.X0), py(c)); ctx.lineTo(px(W.X1), py(c)); ctx.stroke();
+    }
+    ctx.restore(); ctx.restore();
+  }
+
+  function axes() {
+    var a = css("--grid-axis");
+    stroke(W.X0, 0, W.X1, 0, a, 1.3);
+    stroke(0, W.C0, 0, W.C1, a, 1.3);
+    ctx.save();
+    ctx.fillStyle = css("--muted"); ctx.font = "500 10.5px " + MONO;
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    for (var c = Math.ceil(W.C0 / 2) * 2; c <= W.C1; c += 2) {
+      if (Math.abs(c) < 0.001) continue;
+      ctx.fillText(String(c), PAD.l - 7, py(c));
+    }
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    for (var x = Math.ceil(W.X0 / 2) * 2; x <= W.X1; x += 2) {
+      if (Math.abs(x) < 0.001) continue;
+      ctx.fillText(String(x), px(x), py(W.C0) + 6);
+    }
+    ctx.textAlign = "right";
+    ctx.fillText("x (light-years)", PAD.l + plotW, py(W.C0) + 20);
+    ctx.save();
+    ctx.translate(12, PAD.t); ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = "right"; ctx.textBaseline = "top";
+    ctx.fillText("ct (years)", 0, 0);
+    ctx.restore(); ctx.restore();
+  }
+
+  function lightCone() {
+    clipPlot();
+    var col = css("--ray");
+    ray(0, 0, 1, col, 1.3, [5, 4], 0.8);
+    ray(0, 0, -1, col, 1.3, [5, 4], 0.8);
+    ctx.restore();
+  }
+
+  function worldline(x, colour, name, from, to) {
+    stroke(x, W.C0, x, W.C1, colour, 2);
+    ctx.save(); ctx.strokeStyle = colour; ctx.lineWidth = 1.2;
+    for (var c = from; c <= to; c++) {
+      if (c < W.C0 || c > W.C1) continue;
+      ctx.beginPath(); ctx.moveTo(px(x) - 3.5, py(c)); ctx.lineTo(px(x) + 3.5, py(c)); ctx.stroke();
+    }
+    ctx.restore();
+    text(name, x, W.C1 - 0.5, colour, "center", 0, 0, 11.5, 600);
+  }
+
+  function primedAxes(d) {
+    clipPlot();
+    var col = css("--sister"), b = d.b;
+    if (b >= 1) {
+      ray(0, 0, 1, col, 2.2, [], 1);
+    } else {
+      rayV(0, 0, b, col, 2, [], 1);
+      ray(0, 0, b, col, 2, [], 1);
+    }
+    ctx.restore();
+    var tx = Math.min(b * W.C1, W.X1 - 0.4);
+    var tc = (b > 0.0001) ? Math.min(W.C1, (W.X1 - 0.4) / b) : W.C1;
+    text("ct\u2032", tx, tc - 0.5, col, "center", 0, 0, 12, 700);
+    text("x\u2032", W.X1 - 0.3, b * W.X1, col, "right", 0, -12, 12, 700);
+  }
+
+  // ---- mode 1 ------------------------------------------------------------
+
+  function drawSim() {
+    var d = derived();
+    baseGrid();
+    axes();
+    lightCone();
+
+    worldline(0, css("--earth"), "Earth", -10, 10);
+    worldline(d.L, css("--planet"), "Far planet", -10, 10);
+
+    if (state.opt.axes) primedAxes(d);
+
+    if (state.opt.nowLines && d.b < 1) {
+      clipPlot();
+      state.events.forEach(function (e) {
+        ray(e.x, e.ct, d.b, css("--now"), 1.2, [], 0.55);
+      });
+      ctx.restore();
+    }
+
+    state.events.forEach(function (e, i) {
+      dot(e.x, e.ct, css("--now"), 5);
+      text(LETTERS[i], e.x, e.ct, css("--now"), "left", 9, -10, 12, 700);
+    });
+
+    canvas.setAttribute("aria-label",
+      "Minkowski diagram with " + state.events.length + " events. At speed " +
+      d.b.toFixed(3) + "c the sister's axes tilt by " +
+      (Math.atan(Math.min(d.b, 1)) * 180 / Math.PI).toFixed(1) + " degrees.");
+  }
+
+  // ---- mode 2 ------------------------------------------------------------
+
+  function drawTwin() {
+    var d = derived(), s = journey(state.p);
+    baseGrid();
+    axes();
+    lightCone();
+
+    worldline(0, css("--earth"), "Earth", 0, 20);
+    worldline(d.L, css("--planet"), "Far planet", 0, 20);
+
+    var col = css("--sister");
+    clipPlot();
+    stroke(0, 0, d.L, T_LEG, col, 2.5, [], 0.25);
+    stroke(d.L, T_LEG, 0, 2 * T_LEG, col, 2.5, [], 0.25);
+    if (s.key === "accel" || s.key === "out") {
+      stroke(0, 0, s.x, s.ct, col, 2.5);
+    } else {
+      stroke(0, 0, d.L, T_LEG, col, 2.5);
+      if (s.key !== "turn") stroke(d.L, T_LEG, s.x, s.ct, col, 2.5);
+    }
+    ctx.restore();
+
+    if (isFinite(d.g)) {
+      ctx.save(); ctx.fillStyle = col;
+      for (var k = 1; k <= Math.floor(2 * d.legProper + 1e-9); k++) {
+        var tc = k * d.g;
+        var tx = (tc <= T_LEG + 1e-9) ? d.b * tc : d.L - d.b * (tc - T_LEG);
+        if (tc <= 2 * T_LEG + 1e-9) { ctx.beginPath(); ctx.arc(px(tx), py(tc), 2.8, 0, Math.PI * 2); ctx.fill(); }
+      }
+      ctx.restore();
+    }
+
+    if (state.opt.nowLine) {
+      clipPlot(); ray(s.x, s.ct, s.bc, css("--now"), 1.9); ctx.restore();
+      dot(0, s.earthNow, css("--now"), 4.5);
+      dot(d.L, s.farNow, css("--now"), 4.5);
+      text(s.earthNow.toFixed(1), 0, s.earthNow, css("--now"), "right", -9, 0, 11.5, 700);
+      text(s.farNow.toFixed(1), d.L, s.farNow, css("--now"), "left", 10, 0, 11.5, 700);
+    }
+
+    dot(s.x, s.ct, col, 5.5);
+    text("sister " + fmt(s.tau, 1), s.x, s.ct, col, "left", 11, -12, 11.5, 700);
+
+    canvas.setAttribute("aria-label",
+      "Twin paradox diagram. " + s.phase + ". Her clock reads " + fmt(s.tau, 2) +
+      " years; Earth's reads " + fmt(s.earthNow, 2) + " and the far planet's " + fmt(s.farNow, 2) + ".");
+  }
+
+  function draw() {
+    ctx.save(); ctx.fillStyle = css("--surface");
+    ctx.fillRect(0, 0, parseFloat(canvas.style.width) || 0, parseFloat(canvas.style.height) || 0);
+    ctx.restore();
+    if (state.mode === "sim") drawSim(); else drawTwin();
+  }
+
+  // ---- panels ------------------------------------------------------------
+
+  function tile(k, v, unit, sw) {
+    return '<div class="tile"><div class="k">' +
+      (sw ? '<span class="swatch" style="background:' + sw + '"></span>' : "") + k +
+      '</div><div class="v">' + v + (unit ? '<small>' + unit + "</small>" : "") + "</div></div>";
+  }
+
+  function renderTiles() {
+    var d = derived(), h = "";
+    if (state.mode === "sim") {
+      h += tile("Speed", d.b.toFixed(3), "c", css("--sister"));
+      h += tile("Lorentz factor &gamma;", fmt(d.g, 3), "");
+    } else {
+      var s = journey(state.p);
+      h += tile("Lorentz factor &gamma;", fmt(d.g, 3), "");
+      h += tile("Her own clock", fmt(s.tau), "yr", css("--sister"));
+      h += tile("Earth, per her", fmt(s.earthNow), "yr", css("--earth"));
+      h += tile("Far planet, per her", fmt(s.farNow), "yr", css("--planet"));
+    }
+    document.getElementById("tiles").innerHTML = h;
+  }
+
+  function renderEvents() {
+    var panel = document.getElementById("events-panel");
+    if (state.mode !== "sim") { panel.classList.add("hidden"); return; }
+    panel.classList.remove("hidden");
+    var d = derived();
+    var rows = state.events.map(function (e, i) {
+      var pr = toPrime(e, d);
+      return { letter: LETTERS[i], t: e.ct, tp: pr.t };
+    });
+    var html = "<tr><th>Event</th><th>Earth&nbsp;t</th><th>Her&nbsp;t&prime;</th></tr>";
+    rows.forEach(function (r) {
+      html += "<tr><td>" + r.letter + "</td><td>" + fmt(r.t, 1) + "</td><td>" + fmt(r.tp, 1) + "</td></tr>";
+    });
+    document.getElementById("events-table").innerHTML = html;
+
+    function seq(key) {
+      return rows.slice().sort(function (a, b) { return a[key] - b[key]; })
+        .map(function (r) { return r.letter; }).join(" \u2192 ");
+    }
+    document.getElementById("order").innerHTML = (rows.length < 2 || !isFinite(d.g)) ? "" :
+      '<div><span class="lbl">Order for Earth</span><span class="seq" style="color:' +
+      css("--earth") + '">' + seq("t") + "</span></div>" +
+      '<div><span class="lbl">Order for her</span><span class="seq" style="color:' +
+      css("--sister") + '">' + seq("tp") + "</span></div>";
+  }
+
+  function renderLegend() {
+    var items = state.mode === "sim"
+      ? [["--earth", "Earth", 0], ["--planet", "Far planet", 0], ["--ray", "Light", 1],
+         ["--sister", "Her axes", 0], ["--now", "Events", 0]]
+      : [["--earth", "Earth", 0], ["--planet", "Far planet", 0], ["--sister", "Sister", 0],
+         ["--ray", "Light", 1], ["--now", "Her \u201cnow\u201d", 0]];
+    document.getElementById("legend").innerHTML = items.map(function (i) {
+      return '<span><i class="' + (i[2] ? "dash" : "") + '" style="border-top-color:' +
+        css(i[0]) + '"></i>' + i[1] + "</span>";
+    }).join("");
+  }
+
+  function renderToggles() {
+    var list = TOGGLES[state.mode];
+    document.getElementById("toggles").innerHTML = list.map(function (t) {
+      return '<div class="toggle-row"><input type="checkbox" id="tg-' + t.key + '"' +
+        (state.opt[t.key] ? " checked" : "") + '><label for="tg-' + t.key + '">' + t.label + "</label></div>";
+    }).join("");
+    list.forEach(function (t) {
+      document.getElementById("tg-" + t.key).addEventListener("change", function (e) {
+        state.opt[t.key] = e.target.checked; renderAll();
+      });
+    });
+  }
+
+  function renderAll() {
+    var b = state.beta;
+    document.getElementById("beta-val").textContent = (b >= 1 ? "c" : b.toFixed(3) + " c");
+    document.getElementById("journey-val").textContent = journey(state.p).phase;
+    renderTiles(); renderEvents(); renderLegend(); draw();
+  }
+
+  function setMode(m) {
+    state.mode = m; W = WINDOWS[m]; state.opt = {};
+    TOGGLES[m].forEach(function (t) { state.opt[t.key] = t.def; });
+    document.getElementById("tab-sim").setAttribute("aria-selected", String(m === "sim"));
+    document.getElementById("tab-twin").setAttribute("aria-selected", String(m === "twin"));
+    document.getElementById("scrub-control").classList.toggle("hidden", m !== "twin");
+    document.getElementById("clear-events").classList.toggle("hidden", m !== "sim");
+    document.getElementById("hint").textContent = m === "sim"
+      ? "Click the diagram to add an event; click one again to remove it."
+      : "Drag the journey slider to follow the sister from launch to landing.";
+    document.getElementById("readout-title").textContent = m === "sim" ? "Frame" : "Readings";
+    renderToggles(); resize(); renderAll();
+  }
+
+  canvas.addEventListener("click", function (ev) {
+    if (state.mode !== "sim") return;
+    var r = canvas.getBoundingClientRect();
+    var mx = ev.clientX - r.left, my = ev.clientY - r.top;
+    if (mx < PAD.l || mx > PAD.l + plotW || my < PAD.t || my > PAD.t + plotH) return;
+    var wx = toWorldX(mx), wc = toWorldC(my);
+    for (var i = 0; i < state.events.length; i++) {
+      var e = state.events[i];
+      if (Math.hypot(px(e.x) - mx, py(e.ct) - my) < 11) {
+        state.events.splice(i, 1); renderAll(); return;
+      }
+    }
+    if (state.events.length >= LETTERS.length) return;
+    state.events.push({ x: Math.round(wx * 4) / 4, ct: Math.round(wc * 4) / 4 });
+    renderAll();
+  });
+
+  document.getElementById("clear-events").addEventListener("click", function () {
+    state.events = DEFAULT_EVENTS.map(function (e) { return { x: e.x, ct: e.ct }; });
+    renderAll();
+  });
+
+  document.getElementById("tab-sim").addEventListener("click", function () { setMode("sim"); });
+  document.getElementById("tab-twin").addEventListener("click", function () { setMode("twin"); });
+  document.getElementById("beta").addEventListener("input", function (e) {
+    state.beta = parseFloat(e.target.value); renderAll();
+  });
+  document.getElementById("journey").addEventListener("input", function (e) {
+    state.p = parseFloat(e.target.value); renderAll();
+  });
+
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(canvas.parentNode);
+  window.addEventListener("resize", resize);
+  var mq = window.matchMedia("(prefers-color-scheme: dark)");
+  if (mq.addEventListener) mq.addEventListener("change", renderAll);
+  new MutationObserver(renderAll).observe(document.documentElement,
+    { attributes: true, attributeFilter: ["data-theme"] });
+
+  setMode("sim");
+})();
+</script>
